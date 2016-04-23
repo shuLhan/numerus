@@ -132,3 +132,14 @@ func IntsIsExist(d []int, i int) bool {
 	}
 	return false
 }
+
+//
+// IntsTo64 convert slice of integer to 64bit values.
+//
+func IntsTo64(ints []int) []int64 {
+	i64 := make([]int64, len(ints))
+	for x, v := range ints {
+		i64[x] = int64(v)
+	}
+	return i64
+}
