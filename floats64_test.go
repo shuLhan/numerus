@@ -23,6 +23,12 @@ var (
 		{0.0, 0.0, 0.0, 0.0, 0.0, 0.1, 0.1, 0.1, 0.1},
 		{1, 1, 1, 2, 2, 2, 3},
 	}
+	dFloats64SortedDesc = [][]float64{
+		{},
+		{0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1, 0.0},
+		{0.1, 0.1, 0.1, 0.1, 0.0, 0.0, 0.0, 0.0, 0.0},
+		{3, 2, 2, 2, 1, 1, 1},
+	}
 )
 
 func TestFloats64FindMaxEmpty(t *testing.T) {
@@ -67,9 +73,26 @@ func TestFloats64InsertionSort(t *testing.T) {
 			ids[x] = x
 		}
 
-		numerus.Floats64InsertionSort(d, ids, 0, len(ids))
+		numerus.Floats64InsertionSort(d, ids, 0, len(ids), true)
 
 		assert(t, dFloats64Sorted[x], d, true)
+	}
+}
+
+func TestFloats64InsertionSortDesc(t *testing.T) {
+	for x := range dFloats64 {
+		d := make([]float64, len(dFloats64[x]))
+
+		copy(d, dFloats64[x])
+
+		ids := make([]int, len(d))
+		for x := range ids {
+			ids[x] = x
+		}
+
+		numerus.Floats64InsertionSort(d, ids, 0, len(ids), false)
+
+		assert(t, dFloats64SortedDesc[x], d, true)
 	}
 }
 
@@ -132,11 +155,30 @@ var expSorts = [][]float64{
 		7.9},
 }
 
-func TestFloats64IndirectSort_All(t *testing.T) {
+var expSortsDesc = [][]float64{
+	{9.0, 8.0, 7.0, 6.0, 5.0, 4.0, 3.0},
+	{9.0, 8.0, 7.0, 6.0, 5.0, 4.0, 3.0, 2.0, 1.0, 0.0},
+	{9.0, 8.0, 7.0, 6.0, 5.0, 4.0, 3.0, 2.0, 1.0, 0.0},
+	{9.0, 8.0, 7.0, 6.0, 5.0, 4.0, 3.0, 2.0, 1.0, 0.0},
+	{9.0, 8.0, 7.0, 6.0, 5.0, 4.0, 3.0, 2.0, 1.0},
+	{0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{7.9, 7.7, 7.7, 7.7, 7.7, 7.6, 7.4, 7.3, 7.2, 7.2,
+		7.2, 7.1, 7, 6.9, 6.9, 6.9, 6.9, 6.8, 6.8, 6.8,
+		6.7, 6.7, 6.7, 6.7, 6.7, 6.7, 6.7, 6.7, 6.6, 6.6,
+		6.5, 6.5, 6.5, 6.5, 6.5, 6.4, 6.4, 6.4, 6.4, 6.4,
+		6.4, 6.4, 6.3, 6.3, 6.3, 6.3, 6.3, 6.3, 6.3, 6.3,
+		6.2, 6.2, 6.2, 6.2, 6.1, 6.1, 6.1, 6.1, 6.1, 6.1,
+		6, 6, 6, 6, 6, 6, 6, 5.9, 5.9, 5.9,
+		5.8, 5.8, 5.8, 5.8, 5.8, 5.8, 5.7, 5.7, 5.7, 5.7,
+		5.7, 5.7, 5.6, 5.6, 5.6, 5.6, 5.6, 5.6, 5.5, 5.5,
+		5.5, 5.5, 5.5, 5.4, 5.2, 5.1, 5, 5, 4.9, 4.9, 3},
+}
+
+func TestFloats64IndirectSort(t *testing.T) {
 	var res, exp string
 
 	for i := range inSorts {
-		numerus.Floats64IndirectSort(inSorts[i])
+		numerus.Floats64IndirectSort(inSorts[i], true)
 
 		res = fmt.Sprint(inSorts[i])
 		exp = fmt.Sprint(expSorts[i])
@@ -145,9 +187,29 @@ func TestFloats64IndirectSort_All(t *testing.T) {
 	}
 }
 
+func TestFloats64IndirectSortDesc(t *testing.T) {
+	var res, exp string
+
+	for i := range inSorts {
+		numerus.Floats64IndirectSort(inSorts[i], false)
+
+		res = fmt.Sprint(inSorts[i])
+		exp = fmt.Sprint(expSortsDesc[i])
+
+		assert(t, exp, res, true)
+	}
+}
+
 func TestFloats64IndirectSort_Stability(t *testing.T) {
 	exp := []int{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}
-	got := numerus.Floats64IndirectSort(inSorts[5])
+	got := numerus.Floats64IndirectSort(inSorts[5], true)
+
+	assert(t, exp, got, true)
+}
+
+func TestFloats64IndirectSortDesc_Stability(t *testing.T) {
+	exp := []int{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}
+	got := numerus.Floats64IndirectSort(inSorts[5], false)
 
 	assert(t, exp, got, true)
 }
@@ -156,7 +218,7 @@ func TestFloats64InplaceMergesort(t *testing.T) {
 	size := len(inSorts[6])
 	idx := make([]int, size)
 
-	numerus.Floats64InplaceMergesort(inSorts[6], idx, 0, size)
+	numerus.Floats64InplaceMergesort(inSorts[6], idx, 0, size, true)
 
 	assert(t, expSorts[6], inSorts[6], true)
 }
@@ -168,7 +230,7 @@ func TestFloats64IndirectSort_SortByIndex(t *testing.T) {
 
 	exp := fmt.Sprint(in1)
 
-	sortedIds := numerus.Floats64IndirectSort(in1)
+	sortedIds := numerus.Floats64IndirectSort(in1, true)
 
 	assert(t, expIds, sortedIds, true)
 

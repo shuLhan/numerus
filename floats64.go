@@ -140,12 +140,19 @@ func Floats64Swap(d []float64, x, y int) {
 // - `l` is starting index of slice to be sorted.
 // - `r` is end index of slice to be sorted.
 //
-func Floats64InsertionSort(d []float64, ids []int, l, r int) {
+func Floats64InsertionSort(d []float64, ids []int, l, r int, asc bool) {
 	for x := l; x < r; x++ {
 		for y := x + 1; y < r; y++ {
-			if d[x] > d[y] {
-				IntsSwap(ids, x, y)
-				Floats64Swap(d, x, y)
+			if asc {
+				if d[x] > d[y] {
+					IntsSwap(ids, x, y)
+					Floats64Swap(d, x, y)
+				}
+			} else {
+				if d[x] < d[y] {
+					IntsSwap(ids, x, y)
+					Floats64Swap(d, x, y)
+				}
 			}
 		}
 	}
@@ -188,11 +195,11 @@ func Floats64SortByIndex(d *[]float64, sortedIds []int) {
 // (4.3.3) SWAP DATA, X, Y, YLAST
 // (4.3.4) LET Y := the next DATA that has minimum value between x and r
 //
-func Floats64InplaceMergesort(d []float64, idx []int, l, r int) {
+func Floats64InplaceMergesort(d []float64, idx []int, l, r int, asc bool) {
 	// (0)
 	if l+SortThreshold >= r {
 		// (0.1)
-		Floats64InsertionSort(d, idx, l, r)
+		Floats64InsertionSort(d, idx, l, r, asc)
 		return
 	}
 
@@ -204,15 +211,21 @@ func Floats64InplaceMergesort(d []float64, idx []int, l, r int) {
 	}
 
 	// (2)
-	Floats64InplaceMergesort(d, idx, l, c)
+	Floats64InplaceMergesort(d, idx, l, c, asc)
 
 	// (3)
-	Floats64InplaceMergesort(d, idx, c, r)
+	Floats64InplaceMergesort(d, idx, c, r, asc)
 
 	// (4)
-	if d[c-1] <= d[c] {
-		// (4.1)
-		return
+	if asc {
+		if d[c-1] <= d[c] {
+			// (4.1)
+			return
+		}
+	} else {
+		if d[c-1] >= d[c] {
+			return
+		}
 	}
 
 	// (4.2)
@@ -223,20 +236,32 @@ func Floats64InplaceMergesort(d []float64, idx []int, l, r int) {
 	// (4.3)
 	for x < r && y < r {
 		// (4.3.1)
-		if d[x] <= d[y] {
-			x++
+		if asc {
+			if d[x] <= d[y] {
+				x++
 
-			// (4.3.1.2)
-			if x >= y {
-				goto next
+				// (4.3.1.2)
+				if x >= y {
+					goto next
+				}
+
+				// (4.3.1.3)
+				continue
 			}
+		} else {
+			if d[x] >= d[y] {
+				x++
 
-			// (4.3.1.3)
-			continue
+				if x >= y {
+					goto next
+				}
+
+				continue
+			}
 		}
 
 		// (4.3.2)
-		ylast = movey(d, x, y, r)
+		ylast = movey(d, x, y, r, asc)
 
 		// (4.3.3)
 		ylast = multiswap(d, idx, x, y, ylast)
@@ -244,25 +269,38 @@ func Floats64InplaceMergesort(d []float64, idx []int, l, r int) {
 	next:
 		// (4.3.4)
 		for x < r {
-			y = min(d, x, r)
-			if y == x {
-				x++
+			if asc {
+				y = min(d, x, r)
 			} else {
+				y = max(d, x, r)
+			}
+
+			if y != x {
 				break
 			}
+			x++
 		}
 	}
 }
 
-func movey(d []float64, x, y, r int) int {
+func movey(d []float64, x, y, r int, asc bool) int {
 	yorg := y
 	y++
 	for y < r {
-		if d[y] >= d[x] {
-			break
-		}
-		if d[y] < d[yorg] {
-			break
+		if asc {
+			if d[y] >= d[x] {
+				break
+			}
+			if d[y] < d[yorg] {
+				break
+			}
+		} else {
+			if d[y] <= d[x] {
+				break
+			}
+			if d[y] > d[yorg] {
+				break
+			}
 		}
 		y++
 	}
@@ -298,10 +336,22 @@ func min(d []float64, l, r int) (m int) {
 	return
 }
 
+func max(d []float64, l, r int) (m int) {
+	maxv := d[l]
+	m = l
+	for l++; l < r; l++ {
+		if d[l] >= maxv {
+			maxv = d[l]
+			m = l
+		}
+	}
+	return m
+}
+
 //
 // Floats64IndirectSort will sort the data and return the sorted index.
 //
-func Floats64IndirectSort(d []float64) (sortedIdx []int) {
+func Floats64IndirectSort(d []float64, asc bool) (sortedIdx []int) {
 	dlen := len(d)
 
 	sortedIdx = make([]int, dlen)
@@ -309,7 +359,7 @@ func Floats64IndirectSort(d []float64) (sortedIdx []int) {
 		sortedIdx[i] = i
 	}
 
-	Floats64InplaceMergesort(d, sortedIdx, 0, dlen)
+	Floats64InplaceMergesort(d, sortedIdx, 0, dlen, asc)
 
 	return
 }

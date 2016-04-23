@@ -14,6 +14,7 @@ func BenchmarkFloats64InplaceMergesort(b *testing.B) {
 	ids := make([]int, size)
 
 	for i := 0; i < b.N; i++ {
-		numerus.Floats64InplaceMergesort(inSorts[6], ids, 0, size)
+		numerus.Floats64InplaceMergesort(inSorts[6], ids, 0, size,
+			true)
 	}
 }
