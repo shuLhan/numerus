@@ -1,14 +1,8 @@
-// Copyright 2016 Mhd Sulhan <ms@kilabit.info>. All rights reserved.
+// Copyright 2016-2017 Mhd Sulhan <ms@kilabit.info>. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
 package numerus
-
-const (
-	// SortThreshold when the data less than SortThreshold, insertion sort
-	// will be used to replace current sort.
-	SortThreshold = 7
-)
 
 //
 // Floats64FindMax given slice of float, find the maximum value in slice and
@@ -174,52 +168,33 @@ func Floats64SortByIndex(d *[]float64, sortedIds []int) {
 //
 // Floats64InplaceMergesort in-place merge-sort without memory allocation.
 //
-// Algorithm,
-//
-// (0) If data length == Threshold, then
-// (0.1) use insertion sort.
-// (1) Divide into left and right.
-// (2) Sort left.
-// (3) Sort right.
-// (4) Merge sorted left and right.
-// (4.1) If the last element of the left is lower then the first element of the
-//       right, i.e. [1 2] [3 4]; no merging needed, return immediately.
-// (4.2) Let x be the first index of left-side, and y be the first index of
-//       the right-side.
-// (4.3) Loop until either x or y reached the maximum slice.
-// (4.3.1) IF DATA[x] <= DATA[y]
-// (4.3.1.1) INCREMENT x
-// (4.3.1.2) IF x > y THEN GOTO 4.3
-// (4.3.1.3) GOTO 4.3.4
-// (4.3.2) LET YLAST := the next DATA[y] that is less DATA[x]
-// (4.3.3) SWAP DATA, X, Y, YLAST
-// (4.3.4) LET Y := the next DATA that has minimum value between x and r
-//
 func Floats64InplaceMergesort(d []float64, idx []int, l, r int, asc bool) {
-	// (0)
+	// (0) If data length == Threshold, then
 	if l+SortThreshold >= r {
-		// (0.1)
+		// (0.1) use insertion sort.
 		Floats64InsertionSort(d, idx, l, r, asc)
 		return
 	}
 
-	// (1)
+	// (1) Divide into left and right.
 	res := (r + l) % 2
 	c := (r + l) / 2
 	if res == 1 {
 		c++
 	}
 
-	// (2)
+	// (2) Sort left.
 	Floats64InplaceMergesort(d, idx, l, c, asc)
 
-	// (3)
+	// (3) Sort right.
 	Floats64InplaceMergesort(d, idx, c, r, asc)
 
-	// (4)
+	// (4) Merge sorted left and right.
 	if asc {
 		if d[c-1] <= d[c] {
-			// (4.1)
+			// (4.1) If the last element of the left is lower then
+			// the first element of the right, i.e. [1 2] [3 4];
+			// no merging needed, return immediately.
 			return
 		}
 	} else {
@@ -228,24 +203,29 @@ func Floats64InplaceMergesort(d []float64, idx []int, l, r int, asc bool) {
 		}
 	}
 
-	// (4.2)
-	x := l
-	y := c
-	ylast := c
+	inplaceMerge(d, idx, l, c, r, asc)
+}
 
-	// (4.3)
+//
+// Let `x` be the first index of left-side, `y` be the first index of
+// the right-side, and `r` as length of slice `d`
+//
+func inplaceMerge(d []float64, idx []int, x, y, r int, asc bool) {
+	var ylast int
+
+	// (4.3) Loop until either x or y reached the maximum slice.
 	for x < r && y < r {
-		// (4.3.1)
+		// (4.3.1) IF DATA[x] <= DATA[y]
 		if asc {
 			if d[x] <= d[y] {
 				x++
 
-				// (4.3.1.2)
+				// (4.3.1.2) IF x > y THEN GOTO 4.3
 				if x >= y {
 					goto next
 				}
 
-				// (4.3.1.3)
+				// (4.3.1.3) GOTO 4.3
 				continue
 			}
 		} else {
@@ -260,14 +240,14 @@ func Floats64InplaceMergesort(d []float64, idx []int, l, r int, asc bool) {
 			}
 		}
 
-		// (4.3.2)
+		// (4.3.2) LET YLAST := the next DATA[y] that is less DATA[x]
 		ylast = movey(d, x, y, r, asc)
 
-		// (4.3.3)
-		ylast = multiswap(d, idx, x, y, ylast)
+		// (4.3.3) SWAP DATA, X, Y, YLAST
+		multiswap(d, idx, x, y, ylast)
 
 	next:
-		// (4.3.4)
+		// (4.3.4) LET Y := the minimum value between x and r on `d`
 		for x < r {
 			if asc {
 				y = min(d, x, r)

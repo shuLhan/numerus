@@ -1,4 +1,4 @@
-// Copyright 2016 Mhd Sulhan <ms@kilabit.info>. All rights reserved.
+// Copyright 2016-2017 Mhd Sulhan <ms@kilabit.info>. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
@@ -39,8 +39,8 @@ func IntPickRandPositive(maxVal int, dup bool, pickedIds, exsIds []int) (
 ) {
 	rand.Seed(time.Now().UnixNano())
 
-	excluded := false
-	picked := false
+	var excluded, picked bool
+
 	for {
 		idx = rand.Intn(maxVal)
 
