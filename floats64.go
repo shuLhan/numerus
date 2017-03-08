@@ -53,7 +53,7 @@ func Floats64FindMin(d []float64) (minv float64, mini int, ok bool) {
 	mini = x
 
 	for x = 1; x < l; x++ {
-		if d[x] > minv {
+		if d[x] < minv {
 			minv = d[x]
 			mini = x
 		}
@@ -99,7 +99,7 @@ func Floats64Count(d []float64, class float64) (count int) {
 //	1 : 2   -> 1
 //
 //
-func Floats64Counts(d []float64, classes []float64) (counts []int) {
+func Floats64Counts(d, classes []float64) (counts []int) {
 	if len(classes) <= 0 {
 		return
 	}
@@ -119,10 +119,26 @@ func Floats64Swap(d []float64, x, y int) {
 	if x == y {
 		return
 	}
+	if len(d) <= 1 || x > len(d) || y > len(d) {
+		return
+	}
 
 	tmp := d[x]
 	d[x] = d[y]
 	d[y] = tmp
+}
+
+//
+// Floats64IsExist will return true if value `v` exist in slice of `d`,
+// otherwise it will return false.
+//
+func Floats64IsExist(d []float64, v float64) bool {
+	for _, x := range d {
+		if v == x {
+			return true
+		}
+	}
+	return false
 }
 
 //
@@ -203,14 +219,14 @@ func Floats64InplaceMergesort(d []float64, idx []int, l, r int, asc bool) {
 		}
 	}
 
-	inplaceMerge(d, idx, l, c, r, asc)
+	floats64InplaceMerge(d, idx, l, c, r, asc)
 }
 
 //
 // Let `x` be the first index of left-side, `y` be the first index of
 // the right-side, and `r` as length of slice `d`
 //
-func inplaceMerge(d []float64, idx []int, x, y, r int, asc bool) {
+func floats64InplaceMerge(d []float64, idx []int, x, y, r int, asc bool) {
 	var ylast int
 
 	// (4.3) Loop until either x or y reached the maximum slice.
@@ -220,7 +236,7 @@ func inplaceMerge(d []float64, idx []int, x, y, r int, asc bool) {
 			if d[x] <= d[y] {
 				x++
 
-				// (4.3.1.2) IF x > y THEN GOTO 4.3
+				// (4.3.1.2) IF x >= y THEN GOTO 4.3.4
 				if x >= y {
 					goto next
 				}
@@ -241,29 +257,34 @@ func inplaceMerge(d []float64, idx []int, x, y, r int, asc bool) {
 		}
 
 		// (4.3.2) LET YLAST := the next DATA[y] that is less DATA[x]
-		ylast = movey(d, x, y, r, asc)
+		ylast = floats64MoveY(d, x, y, r, asc)
 
 		// (4.3.3) SWAP DATA, X, Y, YLAST
-		multiswap(d, idx, x, y, ylast)
+		floats64Multiswap(d, idx, x, y, ylast)
 
 	next:
 		// (4.3.4) LET Y := the minimum value between x and r on `d`
-		for x < r {
-			if asc {
-				y = min(d, x, r)
-			} else {
-				y = max(d, x, r)
-			}
-
-			if y != x {
-				break
-			}
-			x++
-		}
+		floats64MinY(d, &x, &y, r, asc)
 	}
 }
 
-func movey(d []float64, x, y, r int, asc bool) int {
+// (4.3.4) LET Y := the minimum value between x and r on `d`
+func floats64MinY(d []float64, x, y *int, r int, asc bool) {
+	for *x < r {
+		if asc {
+			*y = floats64Min(d, *x, r)
+		} else {
+			*y = floats64Max(d, *x, r)
+		}
+
+		if *y != *x {
+			break
+		}
+		(*x)++
+	}
+}
+
+func floats64MoveY(d []float64, x, y, r int, asc bool) int {
 	yorg := y
 	y++
 	for y < r {
@@ -287,7 +308,7 @@ func movey(d []float64, x, y, r int, asc bool) int {
 	return y
 }
 
-func multiswap(d []float64, idx []int, x, y, ylast int) int {
+func floats64Multiswap(d []float64, idx []int, x, y, ylast int) int {
 	for y < ylast {
 		IntsSwap(idx, x, y)
 		Floats64Swap(d, x, y)
@@ -304,7 +325,7 @@ func multiswap(d []float64, idx []int, x, y, ylast int) int {
 	return y
 }
 
-func min(d []float64, l, r int) (m int) {
+func floats64Min(d []float64, l, r int) (m int) {
 	min := d[l]
 	m = l
 	for l++; l < r; l++ {
@@ -316,7 +337,7 @@ func min(d []float64, l, r int) (m int) {
 	return
 }
 
-func max(d []float64, l, r int) (m int) {
+func floats64Max(d []float64, l, r int) (m int) {
 	maxv := d[l]
 	m = l
 	for l++; l < r; l++ {

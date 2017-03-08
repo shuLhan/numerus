@@ -1,4 +1,4 @@
-// Copyright 2016 Mhd Sulhan <ms@kilabit.info>. All rights reserved.
+// Copyright 2016-2017 M. Shulhan <ms@kilabit.info>. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
@@ -47,10 +47,66 @@ func TestFloats64FindMax(t *testing.T) {
 	assert(t, true, gotok, true)
 }
 
+func TestFloats64FindMinEmpty(t *testing.T) {
+	gotv, goti, gotok := numerus.Floats64FindMin(dFloats64[0])
+
+	assert(t, gotv, float64(-1), true)
+	assert(t, goti, -1, true)
+	assert(t, gotok, false, true)
+}
+
+func TestFloats64FindMin(t *testing.T) {
+	gotv, goti, gotok := numerus.Floats64FindMin(dFloats64[1])
+
+	assert(t, gotv, float64(0.0), true)
+	assert(t, goti, 5, true)
+	assert(t, gotok, true, true)
+}
+
 func TestFloats64Sum(t *testing.T) {
 	got := numerus.Floats64Sum(dFloats64[1])
 
 	assert(t, float64(4.5), numerus.Float64Round(got, 1), true)
+}
+
+func TestFloats64Count(t *testing.T) {
+	got := numerus.Floats64Count(dFloats64[0], 0)
+
+	assert(t, 0, got, true)
+
+	got = numerus.Floats64Count(dFloats64[1], 0.1)
+
+	assert(t, 1, got, true)
+
+	got = numerus.Floats64Count(dFloats64[2], 0.1)
+
+	assert(t, 4, got, true)
+
+	got = numerus.Floats64Count(dFloats64[3], 0.1)
+
+	assert(t, 0, got, true)
+
+	got = numerus.Floats64Count(dFloats64[3], 3)
+
+	assert(t, 1, got, true)
+}
+
+func TestFloats64CountsEmpty(t *testing.T) {
+	classes := []float64{1, 2, 3}
+	exp := []int{0, 0, 0}
+
+	got := numerus.Floats64Counts(dFloats64[0], classes)
+
+	assert(t, exp, got, true)
+}
+
+func TestFloats64CountsEmptyClasses(t *testing.T) {
+	classes := []float64{}
+	var exp []int
+
+	got := numerus.Floats64Counts(dFloats64[1], classes)
+
+	assert(t, exp, got, true)
 }
 
 func TestFloats64Counts(t *testing.T) {
@@ -60,6 +116,70 @@ func TestFloats64Counts(t *testing.T) {
 	got := numerus.Floats64Counts(dFloats64[3], classes)
 
 	assert(t, exp, got, true)
+}
+
+func TestFloats64SwapEmpty(t *testing.T) {
+	exp := []float64{}
+
+	numerus.Floats64Swap(dFloats64[0], 1, 6)
+
+	assert(t, exp, dFloats64[0], true)
+}
+
+func TestFloats64SwapEqual(t *testing.T) {
+	in := make([]float64, len(dFloats64[1]))
+	copy(in, dFloats64[1])
+
+	exp := make([]float64, len(in))
+	copy(exp, in)
+
+	numerus.Floats64Swap(in, 1, 1)
+
+	assert(t, exp, in, true)
+}
+
+func TestFloats64SwapOutOfRange(t *testing.T) {
+	in := make([]float64, len(dFloats64[1]))
+	copy(in, dFloats64[1])
+
+	exp := make([]float64, len(in))
+	copy(exp, in)
+
+	numerus.Floats64Swap(in, 1, 100)
+
+	assert(t, exp, in, true)
+}
+
+func TestFloats64Swap(t *testing.T) {
+	in := make([]float64, len(dFloats64[1]))
+	copy(in, dFloats64[1])
+
+	exp := make([]float64, len(in))
+	copy(exp, in)
+
+	numerus.Floats64Swap(in, 0, len(in)-1)
+
+	assert(t, exp, in, false)
+
+	tmp := exp[0]
+	exp[0] = exp[len(exp)-1]
+	exp[len(exp)-1] = tmp
+
+	assert(t, exp, in, true)
+}
+
+func TestFloats64IsExist(t *testing.T) {
+	got := numerus.Floats64IsExist(dFloats64[0], 0)
+
+	assert(t, false, got, true)
+
+	got = numerus.Floats64IsExist(dFloats64[1], float64(0))
+
+	assert(t, true, got, true)
+
+	got = numerus.Floats64IsExist(dFloats64[1], float64(0.01))
+
+	assert(t, false, got, true)
 }
 
 func TestFloats64InsertionSort(t *testing.T) {
