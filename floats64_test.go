@@ -118,6 +118,20 @@ func TestFloats64Counts(t *testing.T) {
 	assert(t, exp, got, true)
 }
 
+func TestFloats64MaxCountOf(t *testing.T) {
+	classes := []float64{0, 1}
+	exp := float64(0)
+	got, _ := numerus.Floats64MaxCountOf(dFloats64[2], classes)
+
+	assert(t, exp, got, true)
+
+	// Swap the class values.
+	classes = []float64{1, 0}
+	got, _ = numerus.Floats64MaxCountOf(dFloats64[2], classes)
+
+	assert(t, exp, got, true)
+}
+
 func TestFloats64SwapEmpty(t *testing.T) {
 	exp := []float64{}
 

@@ -113,6 +113,38 @@ func Floats64Counts(d, classes []float64) (counts []int) {
 }
 
 //
+// Floats64MaxCountOf will count number of occurence of each element of classes
+// in data and return the class with maximum count.
+//
+// If `classes` is empty, it will return -1 and false.
+// If `data` is empty, it will return -2 and false.
+// If classes has the same count value, then the first max in the class will be
+// returned.
+//
+// For example, given a data [5, 6, 5, 6, 5] and classes [5, 6, 7], the
+// function will count 5 as 3, 6 as 2, and 7 as 0.
+// Since frequency of 5 is greater than 6 and 7, then it will return `5` and
+// `true`.
+//
+func Floats64MaxCountOf(d, classes []float64) (float64, bool) {
+	if len(classes) == 0 {
+		return -1, false
+	}
+	if len(d) == 0 {
+		return -2, false
+	}
+
+	counts := Floats64Counts(d, classes)
+
+	_, maxi, _ := IntsFindMax(counts)
+	if maxi < 0 {
+		return -1, false
+	}
+
+	return classes[maxi], true
+}
+
+//
 // Floats64Swap swap two indices value of 64bit float.
 //
 func Floats64Swap(d []float64, x, y int) {
